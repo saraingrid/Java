@@ -7,10 +7,15 @@ import com.example.demo.gateways.requests.AlunoPostRequest;
 import com.example.demo.gateways.responses.AlunoResponse;
 import com.example.demo.usecases.CadastrarAluno;
 import jakarta.validation.Valid;
+
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -106,10 +111,12 @@ public class AlunoController {
     return ResponseEntity.ok("Hello World");
   }
 
-  @GetMapping("/apelido/{apelido}")
-  public ResponseEntity<String> getAlunoPorApelido(@PathVariable String apelido) {
-    Optional<Aluno> optionalAluno = alunoRepository.findAlunoByApelido(apelido);
-    return ResponseEntity.ok("Hello World");
+  @GetMapping("/apelido")
+  public ResponseEntity<Page<Aluno>> getAlunoPorApelido(@RequestParam String apelido, @RequestParam Integer pagina, @RequestParam (required = false, defaultValue = "DESC")
+          Sort.Direction sortingType) {
+    PageRequest pageRequest = PageRequest.of(0,21, Sort.by(sortingType, "pessoa.sobrenome").descending());
+    Page<Aluno> paginaAlunos = alunoRepository.findAlunoByApelido(apelido, pageRequest);
+    return ResponseEntity.ok(paginaAlunos);
   }
 
   @GetMapping ("/materia-preferida/{materia}")
@@ -123,6 +130,12 @@ public class AlunoController {
   public ResponseEntity<String> getAlunosByDataMatricula(@RequestParam(value="dataDaMatricula") LocalDate data){
     List<Aluno> findAlunosByDataDaMatricula = alunoRepository.findAlunosByDataDaMatriculaGreaterThan(data);
     return ResponseEntity.ok("Hello World");
+  }
+
+  @GetMapping("/nome")
+  public ResponseEntity<List<Aluno>> getALunoByPessoaPrimeiroNome(@RequestParam (required = false) String nome){
+    List<Aluno> listaAlunos = alunoRepository.findAlunoByPessoaPrimeiroNomeContains(nome);
+    return ResponseEntity.ok(listaAlunos);
   }
 
 }
